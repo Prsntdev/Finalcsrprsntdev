@@ -1,0 +1,81 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AshrayaCSR - कॉर्पोरेट CSR ग्रिड</title>
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <style>
+        :root { --primary: #1e3a8a; --accent: #2563eb; --success: #10b981; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; background: #f8fafc; }
+        header { background: #1e3a8a; color: white; padding: 15px; text-align: center; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { margin: 0; font-size: 20px; }
+        header a { color: #bfdbfe; font-weight: bold; text-decoration: none; font-size: 14px; }
+        .main-container { display: flex; flex: 1; height: calc(100vh - 60px); }
+        .sidebar { width: 400px; background: white; padding: 20px; overflow-y: auto; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; }
+        #map { flex: 1; height: 100%; }
+        .case-card { border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; background: #fff; }
+        .btn-fund { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .media-box { width: 100%; height: 120px; background: #000; border-radius: 6px; margin: 8px 0; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        .media-box img, .media-box video { max-width: 100%; max-height: 120px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>💼 3. कॉर्पोरेट CSR फंडिंग पैनल (Section 135 Grid)</h1>
+        <a href="ngo.html">⬅️ एनजीओ डैशबोर्ड पर लौटें</a>
+    </header>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <h3 style="margin:0;">💸 आश्रय एवं पुनर्वास बजट</h3>
+            <div id="csrContainer"></div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com"></script>
+    <script>
+        let map;
+        window.onload = function() {
+            map = L.map('map').setView([26.8864, 80.9642], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            const stage = parseInt(localStorage.getItem('caseStage') || '0');
+            const land = localStorage.getItem('latestLandmark');
+            const media = localStorage.getItem('tempMedia');
+            const mediaType = localStorage.getItem('tempMediaType');
+
+            if(stage >= 3) {
+                L.marker([26.8864, 80.9642]).addTo(map).bindPopup("<b>सुरक्षित आश्रय स्थल अलॉटेड</b>").openPopup();
+                let mediaHtml = media ? (mediaType === 'video' ? `<video src="${media}" autoplay loop muted></video>` : `<img src="${media}"/>`) : 'कोई मीडिया नहीं';
+
+                document.getElementById('csrContainer').innerHTML = `
+                    <div class="case-card">
+                        <h4>केस ID: CASE_LKO_101</h4>
+                        <p><b>रेस्क्यू स्थल:</b> ${land}</p>
+                        <div class="media-box">${mediaHtml}</div>
+                        <p style="font-size:16px; color:#1e3a8a;"><b>मासिक पुनर्वास खर्च:</b> <b>₹12,000 / माह</b></p>
+                        ${stage === 3 ? `
+                            <button class="btn-fund" onclick="fundCase()">💰 CSR फंड से स्थाई होम शेल्टर अलॉट करें</button>
+                        ` : `
+                            <div style="background:#d1fae5; color:#065f46; padding:12px; border-radius:6px; font-weight:bold; text-align:center;">
+                                🎉 स्पॉन्सर: गवर्नमेंट पॉलिटेक्निक IT केयर फंड ✅<br>
+                                🏠 स्थिति: स्थाई होम शेल्टर में जीवन सुरक्षित है।
+                            </div>
+                        `}
+                    </div>
+                `;
+            } else {
+                document.getElementById('csrContainer').innerHTML = "<p>अभी कोई केस फंडिंग स्टेज तक नहीं पहुँचा है। कृपया पहले एनजीओ डैशबोर्ड पर रेस्क्यू पूरा करें।</p>";
+            }
+        };
+
+        function fundCase() {
+            localStorage.setItem('caseStage', '4');
+            location.reload();
+        }
+    </script>
+</body>
+</html>

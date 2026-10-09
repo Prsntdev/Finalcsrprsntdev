@@ -1,0 +1,94 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AshrayaCSR - एनजीओ लाइव डैशबोर्ड</title>
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <style>
+        :root { --primary: #1e3a8a; --accent: #2563eb; --success: #10b981; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; background: #f8fafc; }
+        header { background: #0f172a; color: white; padding: 15px; text-align: center; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { margin: 0; font-size: 20px; }
+        header a { color: #94a3b8; font-weight: bold; text-decoration: none; font-size: 14px; }
+        .main-container { display: flex; flex: 1; height: calc(100vh - 60px); }
+        .sidebar { width: 400px; background: white; padding: 20px; overflow-y: auto; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; }
+        #map { flex: 1; height: 100%; }
+        .case-card { border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .timeline { display: flex; justify-content: space-between; margin: 10px 0; background: #f1f5f9; padding: 8px; border-radius: 6px; }
+        .step { display: flex; flex-direction: column; align-items: center; flex: 1; font-size: 9px; font-weight: bold; color: #64748b; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #cbd5e1; margin-bottom: 4px; }
+        .step.active .dot { background: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+        .step.active { color: var(--accent); }
+        .step.completed .dot { background: var(--success); }
+        .step.completed { color: var(--success); }
+        .btn { width: 100%; padding: 10px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .media-box { width: 100%; height: 120px; background: #000; border-radius: 6px; margin: 8px 0; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        .media-box img, .media-box video { max-width: 100%; max-height: 120px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🏢 2. एनजीओ लाइव रेस्क्यू डैशबोर्ड</h1>
+        <div>
+            <a href="index.html" style="margin-right: 20px;">⬅️ सिटिजन ऐप</a>
+            <a href="csr.html" style="color: var(--success);">कॉर्पोरेट CSR पैनल ➡️</a>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <h3 style="margin:0;">🚨 एक्टिव रेस्क्यू अलर्ट्स</h3>
+            <div id="caseContainer"></div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com"></script>
+    <script>
+        let map, marker;
+        function init() {
+            map = L.map('map').setView([26.8864, 80.9642], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            
+            const desc = localStorage.getItem('latestDesc');
+            if(desc) {
+                const land = localStorage.getItem('latestLandmark');
+                const stage = parseInt(localStorage.getItem('caseStage') || '1');
+                const media = localStorage.getItem('tempMedia');
+                const mediaType = localStorage.getItem('tempMediaType');
+
+                marker = L.marker([26.8864, 80.9642]).addTo(map).bindPopup(`<b>स्थान:</b> ${land}`).openPopup();
+                
+                let mediaHtml = media ? (mediaType === 'video' ? `<video src="${media}" autoplay loop muted></video>` : `<img src="${media}"/>`) : 'कोई मीडिया नहीं';
+
+                document.getElementById('caseContainer').innerHTML = `
+                    <div class="case-card">
+                        <h4>केस ID: CASE_LKO_101</h4>
+                        <p><b>विवरण:</b> ${desc}</p>
+                        <p><b>लैंडमार्क:</b> ${land}</p>
+                        <div class="media-box">${mediaHtml}</div>
+                        <div class="timeline">
+                            <div class="step ${stage>=1?'completed':''} ${stage===1?'active':''}"><div class="dot"></div>रोड</div>
+                            <div class="step ${stage>=2?'completed':''} ${stage===2?'active':''}"><div class="dot"></div>रवाना</div>
+                            <div class="step ${stage>=3?'completed':''} ${stage===3?'active':''}"><div class="dot"></div>रेस्क्यू</div>
+                            <div class="step ${stage>=4?'completed':''} ${stage===4?'active':''}"><div class="dot"></div>आश्रय</div>
+                        </div>
+                        ${stage===1?`<button class="btn" onclick="updateStage(2)">🚒 टीम रवाना करें</button>`:''}
+                        ${stage===2?`<button class="btn" style="background:var(--success)" onclick="updateStage(3)">✅ रेस्क्यू पूरा करें</button>`:''}
+                        ${stage>=3?`<p style="color:var(--success); font-weight:bold; text-align:center;">✨ रेस्क्यू पूरा हुआ। आश्रय हेतु CSR ग्रिड पर भेज दिया गया।</p>`:''}
+                    </div>
+                `;
+            } else {
+                document.getElementById('caseContainer').innerHTML = "<p>कोई एक्टिव अलर्ट नहीं है। कृपया पहले पेज से रिपोर्ट सबमिट करें।</p>";
+            }
+        }
+        function updateStage(s) {
+            localStorage.setItem('caseStage', s);
+            location.reload();
+        }
+        window.onload = init;
+    </script>
+</body>
+</html>

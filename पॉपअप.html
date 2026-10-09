@@ -1,0 +1,112 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AshrayaCSR - सिटिजन रिपोर्टर ऐप</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --dark: #0f172a;
+            --accent: #2563eb;
+            --success: #10b981;
+            --bg: #f8fafc;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 0; background-color: var(--bg); display: flex; flex-direction: column; min-height: 100vh; color: #334155; }
+        header { background: linear-gradient(135deg, var(--primary), #1d4ed8); color: white; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        header h1 { margin: 0; font-size: 24px; }
+        header p { margin: 5px 0 0 0; font-size: 13px; color: #bfdbfe; }
+        .wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .card { background: white; width: 100%; max-width: 500px; padding: 30px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
+        .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 13px; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; }
+        input, textarea, select { padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: #f8fafc; }
+        input:focus, textarea:focus, select:focus { border-color: var(--accent); outline: none; background: white; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        textarea { resize: none; height: 90px; }
+        .btn-submit { padding: 14px; background: linear-gradient(135deg, var(--accent), #1d4ed8); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
+        .status-alert { padding: 12px; border-radius: 8px; text-align: center; font-weight: 600; font-size: 13px; background: #f1f5f9; border: 1px dashed #cbd5e1; margin-bottom: 15px; }
+        .success-flash { background: #d1fae5; color: #065f46; border-color: #34d399; }
+        .media-preview-box { width: 100%; max-height: 150px; border-radius: 8px; overflow: hidden; margin-top: 5px; border: 1px solid #e2e8f0; background: #000; display: flex; justify-content: center; align-items: center; }
+        .media-preview-box img, .media-preview-box video { max-width: 100%; max-height: 150px; object-fit: contain; }
+        .nav-next { text-align: center; margin-top: 15px; }
+        .nav-next a { color: var(--accent); font-weight: bold; text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🤝 Project AshrayaCSR - Citizen App</h1>
+        <p>सेवा संकल्पना इन्नोवेशन चैलेंज | प्रशांत यादव & हर्षित (IT Branch)</p>
+    </header>
+
+    <div class="wrapper">
+        <div class="card">
+            <h3 style="margin:0 0 15px 0; color: var(--dark);">📸 लाइव रिपोर्ट दर्ज करें (Step 1)</h3>
+            <div class="form-group">
+                <label>पीड़ित की स्थिति का विवरण</label>
+                <textarea id="familyDetails" placeholder="उदा: एक बीमार बुजुर्ग व्यक्ति परिवार के साथ खुले फुटपाथ पर दयनीय स्थिति में लेटे हैं..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>सटीक लैंडमार्क / सड़क का नाम</label>
+                <input type="text" id="landmarkInput" placeholder="उदा: मुंशीपुलिया मेट्रो पिलर नंबर 12 के पास, लखनऊ">
+            </div>
+            <div class="form-group">
+                <label>आपातकाल का स्तर (Urgency)</label>
+                <select id="urgencyLevel">
+                    <option value="🔴 Critical">🔴 Critical (तुरंत चिकित्सा चाहिए)</option>
+                    <option value="🟡 Immediate">🟡 Immediate (आश्रय और भोजन चाहिए)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>लाइव वीडियो / फोटो अपलोड करें</label>
+                <input type="file" id="mediaUpload" accept="image/*,video/*" onchange="previewMedia()">
+                <div id="formMediaPreview" style="display:none;" class="media-preview-box"></div>
+            </div>
+            <div id="submitStatus" class="status-alert">GPS: Automated location tracking enabled</div>
+            <button class="btn-submit" onclick="submitCase()">🚀 Send Live Alert to Grid</button>
+            
+            <div class="nav-next">
+                <a href="ngo.html">➡️ एनजीओ लाइव डैशबोर्ड पर जाएं (Page 2)</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function previewMedia() {
+            const file = document.getElementById('mediaUpload').files[0];
+            const preview = document.getElementById('formMediaPreview');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.style.display = "flex";
+                    if (file.type.startsWith('video/')) {
+                        preview.innerHTML = `<video src="${e.target.result}" autoplay loop muted></video>`;
+                    } else {
+                        preview.innerHTML = `<img src="${e.target.result}" />`;
+                    }
+                    localStorage.setItem('tempMedia', e.target.result);
+                    localStorage.setItem('tempMediaType', file.type.startsWith('video/') ? 'video' : 'image');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function submitCase() {
+            const desc = document.getElementById('familyDetails').value;
+            const land = document.getElementById('landmarkInput').value;
+            const urg = document.getElementById('urgencyLevel').value;
+            const statusBox = document.getElementById('submitStatus');
+
+            if (!desc || !land) { alert("कृपया सभी विवरण भरें!"); return; }
+
+            localStorage.setItem('latestDesc', desc);
+            localStorage.setItem('latestLandmark', land);
+            localStorage.setItem('latestUrgency', urg);
+            localStorage.setItem('caseStage', '1');
+
+            statusBox.innerText = "🎉 अलर्ट लाइव ग्रिड में भेज दिया गया है!";
+            statusBox.className = "status-alert success-flash";
+        }
+    </script>
+</body>
+</html>
